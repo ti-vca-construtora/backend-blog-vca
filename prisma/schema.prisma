@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Task {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String
+  completed   Boolean   @default(false)
+  createdAt   DateTime? @default(now())
+  userId     Int?
+  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)  
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  imagem    String?
+  password  String
+  role      String   @default("Admin")
+  active    Boolean @default(true)
+  
+  createdAt DateTime @default(now())
+  Tasks     Task[]
+
+  eventosCriados     Evento[] @relation("EventoCriadoPor")
+  eventosAtualizados Evento[] @relation("EventoAtualizadoPor")
+
+  postsCriados       Post[]   @relation("PostCriadoPor")
+  postsAtualizados   Post[]   @relation("PostAtualizadoPor")
+}
+
+model Categoria{
+  id_categoria   Int @id @default(autoincrement())
+  nome           String
+  icone          String?
+  status         Boolean @default(true)
+  createdAt      DateTime @default(now())
+
+  posts          Post[]
+}
+
+model Banner {
+  id_banner    Int      @id @default(autoincrement())
+  url          String
+  data_inicio  DateTime
+  data_termino DateTime?
+  status       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+model Evento {
+  id            Int      @id @default(autoincrement())
+
+  titulo        String
+  descricao     String?
+  prioridade    Int?
+  local         String?
+  imagem        String?
+  status        Boolean  @default(true)
+
+  dataEvento    DateTime
+  horaEvento    String?
+
+  criadoPorId   Int
+  atualizadoPorId Int?
+
+  criadoEm      DateTime @default(now())
+  atualizadoEm  DateTime @updatedAt
+
+  criadoPor     User     @relation("EventoCriadoPor", fields: [criadoPorId], references: [id])
+  atualizadoPor User?    @relation("EventoAtualizadoPor", fields: [atualizadoPorId], references: [id])
+}
+
+model Post {
+  id            Int      @id @default(autoincrement())
+
+  categoriaId   Int
+  titulo        String
+  subtitulo     String?
+  imagem        String?
+  descricao     String?
+  status        Boolean  @default(true)
+
+  criadoPorId   Int
+  atualizadoPorId Int?
+
+  criadoEm      DateTime @default(now())
+  atualizadoEm  DateTime @updatedAt
+
+  categoria     Categoria @relation(fields: [categoriaId], references: [id_categoria])
+  criadoPor     User      @relation("PostCriadoPor", fields: [criadoPorId], references: [id])
+  atualizadoPor User?     @relation("PostAtualizadoPor", fields: [atualizadoPorId], references: [id])
+
+  documentos    PostDocumento[]
+}
+
+model PostDocumento {
+  id        Int    @id @default(autoincrement())
+  postId    Int
+  url       String
+
+  post      Post   @relation(fields: [postId], references: [id])
+}
+
+
+model Story {
+  id          Int      @id @default(autoincrement())
+
+  url         String
+  dataInicio  DateTime
+  dataTermino DateTime
+}
