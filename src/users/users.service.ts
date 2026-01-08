@@ -22,6 +22,7 @@ async findAll() {
           id:true,
           name:true,
           email:true,
+          role:true,
           imagem:true,  
         }
       });
@@ -39,6 +40,7 @@ async findOne(id: number) {
             name:true,
             email:true,
             imagem:true, 
+            role:true,
             Tasks:true   
         }
     });
@@ -77,6 +79,7 @@ async create(createUserDto:CreateUserDto, file?: Express.Multer.File){
             name:true,
             email:true,
             imagem:true,
+            role:true,
         }
     });
 
