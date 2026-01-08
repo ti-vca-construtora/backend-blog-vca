@@ -94,9 +94,9 @@ export class PostsService {
     throw new HttpException('Post não encontrado', HttpStatus.NOT_FOUND)
   }
 
-  if (post.criadoPorId !== token.sub) {
-    throw new HttpException('Acesso negado', HttpStatus.FORBIDDEN)
-  }
+  // if (post.criadoPorId !== token.sub) {
+  //   throw new HttpException('Acesso negado', HttpStatus.FORBIDDEN)
+  // }
 
 const documentos: { postId: number; url: string }[] = []
 
@@ -136,9 +136,9 @@ await this.prisma.postDocumento.createMany({
       throw new HttpException('Post não encontrado', HttpStatus.NOT_FOUND)
     }
 
-    if (post.criadoPorId !== token.sub) {
-      throw new HttpException('Acesso negado', HttpStatus.FORBIDDEN)
-    }
+    // if (post.criadoPorId !== token.sub) {
+    //   throw new HttpException('Acesso negado', HttpStatus.FORBIDDEN)
+    // }
 
     return this.prisma.post.update({
       where: { id },
@@ -156,9 +156,9 @@ await this.prisma.postDocumento.createMany({
       throw new HttpException('Post não encontrado', HttpStatus.NOT_FOUND)
     }
 
-    if (post.criadoPorId !== token.sub) {
-      throw new HttpException('Acesso negado', HttpStatus.FORBIDDEN)
-    }
+    // if (post.criadoPorId !== token.sub) {
+    //   throw new HttpException('Acesso negado', HttpStatus.FORBIDDEN)
+    // }
 
     await this.prisma.post.delete({ where: { id } })
 

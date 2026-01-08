@@ -10,7 +10,10 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,//remover propriedades não declaradas nos DTOs
-    transform: false, //transforma os tipos primitivos conforme declarado nos DTOs   
+    transform: true, //transforma os tipos primitivos conforme declarado nos DTOs   
+    transformOptions:{
+      enableImplicitConversion:true,
+    },
   }));
 
   // 🔹 Swagger Config

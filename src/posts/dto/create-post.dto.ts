@@ -1,11 +1,13 @@
 import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator'
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { Type } from 'class-transformer'
 
 export class CreatePostDto {
   @ApiProperty({
     example: 1,
     description: 'ID da categoria do post',
   })
+  @Type(()=>Number)
   @IsInt()
   categoriaId: number
 
@@ -34,6 +36,7 @@ export class CreatePostDto {
     example: true,
     description: 'Status do post (ativo/inativo)',
   })
+  @Type(() => Boolean)
   @IsBoolean()
   @IsOptional()
   status?: boolean
