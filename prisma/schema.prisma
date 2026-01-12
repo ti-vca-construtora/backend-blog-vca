@@ -85,7 +85,7 @@ model Post {
   titulo        String
   subtitulo     String?
   imagem        String?
-  descricao     String?
+  descricao     String?  @db.LongText
   status        Boolean  @default(true)
 
   criadoPorId   Int
