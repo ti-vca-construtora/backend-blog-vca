@@ -6,6 +6,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: blog_vca
+      MYSQL_USER: blog_user
+      MYSQL_PASSWORD: BlogUserPassword2026
     ports:
       - "3306:3306"
     volumes:
