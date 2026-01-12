@@ -21,6 +21,8 @@ services:
     ports:
       - "3000:3000"
     restart: always
+    volumes:
+      - ./files:/app/files
 
 volumes:
   mysql_data:
