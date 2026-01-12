@@ -114,6 +114,10 @@ async update(
     throw new HttpException('Acesso negado', HttpStatus.FORBIDDEN)
   }
 
+  if (!dto.name && !dto.password && !dto.role && !file) {
+    throw new HttpException('At least one field must be provided for update', HttpStatus.BAD_REQUEST)
+  }
+
   let imageName: string | undefined
 
   if (file) {
