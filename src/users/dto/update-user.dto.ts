@@ -7,7 +7,7 @@ export class UpdateUserDto{
         description: 'Nome completo do usuário',
       })
       @IsString()
-      @IsNotEmpty()
+      @IsOptional()
       name: string
     
       @ApiProperty({
@@ -15,6 +15,7 @@ export class UpdateUserDto{
         description: 'Email do usuário (único)',
       })
       @IsEmail()
+      @IsOptional()
       email: string
     
       @ApiProperty({
@@ -23,12 +24,14 @@ export class UpdateUserDto{
       })
       @IsString()
       @MinLength(6)
+      @IsOptional()
       password: string
     
       @ApiPropertyOptional({
         example: 'Admin',
         description: 'Perfil do usuário (ex: Admin, Editor, User)',
       })
+      
       @IsOptional()
       @IsString()
       role?: string
