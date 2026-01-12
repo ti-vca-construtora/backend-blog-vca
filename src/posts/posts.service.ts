@@ -126,28 +126,37 @@ await this.prisma.postDocumento.createMany({
 
 
   async update(
-    id: number,
-    dto: UpdatePostDto,
-    token: PayloadTokenDto,
-  ) {
-    const post = await this.prisma.post.findFirst({ where: { id } })
+  id: number,
+  dto: UpdatePostDto,
+  file: Express.Multer.File | undefined,
+  token: PayloadTokenDto,
+) {
+  const post = await this.prisma.post.findFirst({ where: { id } })
 
-    if (!post) {
-      throw new HttpException('Post não encontrado', HttpStatus.NOT_FOUND)
-    }
-
-    // if (post.criadoPorId !== token.sub) {
-    //   throw new HttpException('Acesso negado', HttpStatus.FORBIDDEN)
-    // }
-
-    return this.prisma.post.update({
-      where: { id },
-      data: {
-        ...dto,
-        atualizadoPorId: token.sub,
-      },
-    })
+  if (!post) {
+    throw new HttpException('Post não encontrado', HttpStatus.NOT_FOUND)
   }
+
+  let imageName: string | undefined
+
+  if (file) {
+    const ext = path.extname(file.originalname)
+    imageName = `${randomUUID()}${ext}`
+
+    const filePath = path.resolve(process.cwd(), 'files', imageName)
+    await fs.writeFile(filePath, file.buffer)
+  }
+
+  return this.prisma.post.update({
+    where: { id },
+    data: {
+      ...dto,
+      ...(imageName && { imagem: imageName }),
+      atualizadoPorId: token.sub,
+    },
+  })
+}
+
 
   async delete(id: number, token: PayloadTokenDto) {
     const post = await this.prisma.post.findFirst({ where: { id } })

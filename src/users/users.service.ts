@@ -96,60 +96,59 @@ async create(createUserDto:CreateUserDto, file?: Express.Multer.File){
   }
 }
 
-async update(id:number, updateUserDto:UpdateUserDto, tokenPayload:PayloadTokenDto){
-    
-    try{
-        const user = await this.prisma.user.findFirst({
-        where: {
-            id:id,
-        },     
-    });
+async update(
+  id: number,
+  dto: UpdateUserDto,
+  file: Express.Multer.File | undefined,
+  tokenPayload: PayloadTokenDto,
+) {
+  const user = await this.prisma.user.findFirst({
+    where: { id },
+  })
 
-    if(!user){
-        throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
-    }
+  if (!user) {
+    throw new HttpException('User not found', HttpStatus.NOT_FOUND)
+  }
 
-    if(user.id !== tokenPayload.sub){
-        throw new HttpException('Acesso negado', HttpStatus.BAD_REQUEST);
-    }
+  if (user.id !== tokenPayload.sub) {
+    throw new HttpException('Acesso negado', HttpStatus.FORBIDDEN)
+  }
 
-  const dataUser: {
-  name?: string | null
-  password?: string
-} = {}
+  let imageName: string | undefined
 
+  if (file) {
+    const ext = path.extname(file.originalname)
+    imageName = `${tokenPayload.sub}${ext}`
 
-    if(updateUserDto.name !== undefined){
-      dataUser.name = updateUserDto.name
-    }
+    const filePath = path.resolve(process.cwd(), 'files', imageName)
+    await fs.mkdir(path.dirname(filePath), { recursive: true })
+    await fs.writeFile(filePath, file.buffer)
+  }
 
-    if(updateUserDto?.password){
-      const passwordHash = await this.hashingService.hash(updateUserDto?.password)
-      dataUser['password'] = passwordHash
-    }
+  let passwordHash: string | undefined
 
-    const updatedUser = await this.prisma.user.update({
-        where:{
-            id:id
-          },
-          data: {
-            name: dataUser.name,          
-            password: dataUser?.password ? dataUser?.password : user.password,  
-          }, 
-          select:{
-            id:true,
-            name:true,
-            email:true,
-            imagem:true,
-          } 
-    });   
-    
-    return updatedUser;
+  if (dto.password) {
+    passwordHash = await this.hashingService.hash(dto.password)
+  }
 
-        }catch(err){
-          throw new HttpException('Error updating user', HttpStatus.BAD_REQUEST); 
-        }
+  return this.prisma.user.update({
+    where: { id },
+    data: {
+      ...(dto.name && { name: dto.name }),
+      ...(passwordHash && { password: passwordHash }),
+      ...(dto.role && { role: dto.role }),
+      ...(imageName && { imagem: imageName }),
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      imagem: true,
+      role: true,
+    },
+  })
 }
+
 
 
 async delete(id:number, tokenPayload:PayloadTokenDto){

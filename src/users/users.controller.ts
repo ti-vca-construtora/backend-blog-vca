@@ -76,14 +76,46 @@ export class UsersController {
    }
    
    @UseGuards(AuthTokenGuard)
-   @Patch(':id')
-   updateUser(@Param('id', ParseIntPipe) id:number, 
-              @Body() updateUserDto: UpdateUserDto,
-              @TokenPayloadParam() tokenPayload:PayloadTokenDto          
-              ) {   
+@Patch(':id')
+@ApiConsumes('multipart/form-data')
+@ApiBody({
+  description: 'Atualização do usuário (imagem opcional)',
+  schema: {
+    type: 'object',
+    properties: {
+      file: {
+        type: 'string',
+        format: 'binary',
+        description: 'Nova imagem do usuário (opcional)',
+      },
+      name: { type: 'string' },
+      password: { type: 'string' },
+      role: { type: 'string', example: 'Admin' },
+    },
+  },
+})
+@UseInterceptors(FileInterceptor('file'))
+updateUser(
+  @Param('id', ParseIntPipe) id: number,
 
-    return this.userService.update(id, updateUserDto, tokenPayload);
-    }
+  @Body() updateUserDto: UpdateUserDto,
+
+  @UploadedFile(
+    new ParseFilePipeBuilder()
+      .addFileTypeValidator({ fileType: /jpeg|jpg|png/ })
+      .addMaxSizeValidator({ maxSize: 3 * 1024 * 1024 })
+      .build({
+        fileIsRequired: false,
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+  )
+  file: Express.Multer.File,
+
+  @TokenPayloadParam() tokenPayload: PayloadTokenDto,
+) {
+  return this.userService.update(id, updateUserDto, file, tokenPayload)
+}
+
      
     @UseGuards(AuthTokenGuard)
     @Delete(':id')  

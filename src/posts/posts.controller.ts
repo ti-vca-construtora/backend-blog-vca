@@ -145,22 +145,53 @@ export class PostsController {
   }
 
   @UseGuards(AuthTokenGuard)
-  @Patch(':id')
-  @ApiParam({
+@Patch(':id')
+@ApiParam({
   name: 'id',
   type: Number,
   description: 'ID do post',
   example: 1,
 })
-@ApiConsumes('application/json')
-@ApiBody({ type: UpdatePostDto})
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updatePostDto: UpdatePostDto,
-    @TokenPayloadParam() tokenPayload: PayloadTokenDto,
-  ) {
-    return this.postsService.update(id, updatePostDto, tokenPayload)
-  }
+@ApiConsumes('multipart/form-data')
+@ApiBody({
+  description: 'Atualização do post (imagem opcional)',
+  schema: {
+    type: 'object',
+    properties: {
+      file: {
+        type: 'string',
+        format: 'binary',
+        description: 'Nova imagem principal (opcional)',
+      },
+      categoriaId: { type: 'number', example: 1 },
+      titulo: { type: 'string', example: 'Novo título' },
+      subtitulo: { type: 'string' },
+      descricao: { type: 'string' },
+      status: { type: 'boolean', example: true },
+    },
+  },
+})
+@UseInterceptors(FileInterceptor('file'))
+update(
+  @Param('id', ParseIntPipe) id: number,
+  @Body() updatePostDto: UpdatePostDto,
+
+  @UploadedFile(
+    new ParseFilePipeBuilder()
+      .addFileTypeValidator({ fileType: /jpeg|jpg|png/ })
+      .addMaxSizeValidator({ maxSize: 3 * 1024 * 1024 })
+      .build({
+        fileIsRequired: false,
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+  )
+  file: Express.Multer.File,
+
+  @TokenPayloadParam() tokenPayload: PayloadTokenDto,
+) {
+  return this.postsService.update(id, updatePostDto, file, tokenPayload)
+}
+
 
   @UseGuards(AuthTokenGuard)
   @Delete(':id')
