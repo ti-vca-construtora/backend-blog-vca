@@ -193,6 +193,38 @@ update(
 }
 
 
+@UseGuards(AuthTokenGuard)
+@Delete(':id/imagem')
+@ApiParam({
+  name: 'id',
+  type: Number,
+  description: 'ID do post',
+  example: 1,
+})
+removeImagem(
+  @Param('id', ParseIntPipe) id: number,
+  @TokenPayloadParam() tokenPayload: PayloadTokenDto,
+) {
+  return this.postsService.removeImagem(id, tokenPayload)
+}
+
+
+@UseGuards(AuthTokenGuard)
+@Delete('documentos/:id')
+@ApiParam({
+  name: 'id',
+  type: Number,
+  description: 'ID do documento',
+})
+removeDocumento(
+  @Param('id', ParseIntPipe) id: number,
+  @TokenPayloadParam() tokenPayload: PayloadTokenDto,
+) {
+  return this.postsService.removeDocumento(id, tokenPayload)
+}
+
+
+
   @UseGuards(AuthTokenGuard)
   @Delete(':id')
   @ApiParam({

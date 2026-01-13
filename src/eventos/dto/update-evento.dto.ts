@@ -26,6 +26,7 @@ export class UpdateEventoDto  {
   @IsString()
   @IsNotEmpty({ message: 'O título é obrigatório' })
   @MaxLength(150)
+  @IsOptional()
   titulo: string
 
   @ApiPropertyOptional({
@@ -35,6 +36,7 @@ export class UpdateEventoDto  {
   @IsString()
   @IsOptional()
   @MaxLength(500)
+  @IsOptional()
   descricao?: string
 
   @ApiPropertyOptional({
@@ -67,6 +69,7 @@ export class UpdateEventoDto  {
     description: 'Data do evento',
   })
   @IsDateString({}, { message: 'Data do evento inválida' })
+  @IsOptional()
   dataEvento: string
 
   @ApiPropertyOptional({

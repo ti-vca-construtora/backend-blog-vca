@@ -25,7 +25,7 @@ export class AuthTokenGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: Request = context.switchToHttp().getRequest()
 
-    console.log('HEADERS RECEBIDOS:', request.headers);
+   // console.log('HEADERS RECEBIDOS:', request.headers);
 
     const token = this.extractTokenHeader(request)
 
@@ -40,24 +40,24 @@ export class AuthTokenGuard implements CanActivate {
         issuer: this.jwtConfiguration.issuer,
       })
 
-      // 🔥 NORMALIZAÇÃO CRÍTICA
+      //  NORMALIZAÇÃO CRÍTICA
       payload.sub = Number(payload.sub)
 
       if (Number.isNaN(payload.sub)) {
         throw new UnauthorizedException('Token inválido')
       }
 
-      request[REQUEST_TOKEN_PAYLOAD_NAME] = payload
+      request[REQUEST_TOKEN_PAYLOAD_NAME] = payload 
 
-      const user = await this.prisma.user.findFirst({
-        where: {
-          id: payload.sub,
-        },
-      })
+      // const user = await this.prisma.user.findFirst({
+      //   where: {
+      //     id: payload.sub,
+      //   },
+      // })
 
-      if (!user || !user.active) {
-        throw new UnauthorizedException('Acesso nao autorizado')
-      }
+      // if (!user || !user.active) {
+      //   throw new UnauthorizedException('Acesso nao autorizado')
+      // }
 
       return true
     } catch {

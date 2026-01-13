@@ -19,6 +19,7 @@ import {
   ApiConsumes,
   ApiBody,
   ApiBearerAuth,
+  ApiParam,
 } from '@nestjs/swagger'
 
 
@@ -124,6 +125,24 @@ updateUser(
         ) {   
         return this.userService.delete(id, tokenPayload);
     }
+
+@UseGuards(AuthTokenGuard)
+@Delete(':id/imagem')
+@ApiBearerAuth()
+@ApiParam({
+  name: 'id',
+  type: Number,
+  description: 'ID do usuário',
+  example: 1,
+})
+removeImagem(
+  @Param('id', ParseIntPipe) id: number,
+  @TokenPayloadParam() tokenPayload: PayloadTokenDto,
+) {
+  return this.userService.removeImagem(id, tokenPayload)
+}
+
+
     
 @UseGuards(AuthTokenGuard)
 @UseInterceptors(FileInterceptor('file'))

@@ -157,6 +157,67 @@ await this.prisma.postDocumento.createMany({
   })
 }
 
+async removeImagem(id: number, token: PayloadTokenDto) {
+  const post = await this.prisma.post.findFirst({
+    where: { id },
+  })
+
+  if (!post) {
+    throw new HttpException('Post não encontrado', HttpStatus.NOT_FOUND)
+  }
+
+  // (opcional) controle de permissão
+  // if (post.criadoPorId !== token.sub) {
+  //   throw new HttpException('Acesso negado', HttpStatus.FORBIDDEN)
+  // }
+
+  // Remove o arquivo físico
+  if (post.imagem) {
+    const filePath = path.resolve(process.cwd(), 'files', post.imagem)
+
+    try {
+      await fs.unlink(filePath)
+    } catch (err) {
+      // se o arquivo não existir, não quebra a API
+    }
+  }
+
+  // Remove a referência no banco
+  await this.prisma.post.update({
+    where: { id },
+    data: {
+      imagem: null,
+      atualizadoPorId: token.sub,
+    },
+  })
+
+  return { message: 'Imagem do post removida com sucesso' }
+}
+
+async removeDocumento(id: number, token: PayloadTokenDto) {
+  const doc = await this.prisma.postDocumento.findFirst({
+    where: { id },
+  })
+
+  if (!doc) {
+    throw new HttpException('Documento não encontrado', HttpStatus.NOT_FOUND)
+  }
+
+  const filePath = path.resolve(process.cwd(), 'files', doc.url)
+
+  try {
+    await fs.unlink(filePath)
+  } catch {}
+
+  await this.prisma.postDocumento.delete({
+    where: { id },
+  })
+
+  return { message: 'Documento removido com sucesso' }
+}
+
+
+
 
   async delete(id: number, token: PayloadTokenDto) {
     const post = await this.prisma.post.findFirst({ where: { id } })

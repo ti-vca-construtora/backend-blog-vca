@@ -185,6 +185,42 @@ try{
 }    
 }
 
+async removeImagem(id: number, tokenPayload: PayloadTokenDto) {
+  const user = await this.prisma.user.findFirst({
+    where: { id },
+  })
+
+  if (!user) {
+    throw new HttpException('User not found', HttpStatus.NOT_FOUND)
+  }
+
+  if (user.id !== tokenPayload.sub) {
+    throw new HttpException('Acesso negado', HttpStatus.FORBIDDEN)
+  }
+
+  // Remove o arquivo físico
+  if (user.imagem) {
+    const filePath = path.resolve(process.cwd(), 'files', user.imagem)
+
+    try {
+      await fs.unlink(filePath)
+    } catch {
+      // Se o arquivo não existir, não quebra a API
+    }
+  }
+
+  // Remove referência no banco
+  await this.prisma.user.update({
+    where: { id },
+    data: {
+      imagem: null,
+    },
+  })
+
+  return { message: 'Imagem do usuário removida com sucesso' }
+}
+
+
 async uploadAvatarImage(
     tokenPayload: PayloadTokenDto, 
     file:Express.Multer.File){
