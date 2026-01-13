@@ -78,9 +78,9 @@ export class EventosService {
       throw new HttpException('Evento não encontrado', HttpStatus.NOT_FOUND)
     }
 
-    if (evento.criadoPorId !== token.sub) {
-      throw new HttpException('Acesso negado', HttpStatus.FORBIDDEN)
-    }
+    // if (evento.criadoPorId !== token.sub) {
+    //   throw new HttpException('Acesso negado', HttpStatus.FORBIDDEN)
+    // }
 
     let imageName = evento.imagem
 
@@ -109,9 +109,9 @@ export class EventosService {
       throw new HttpException('Evento não encontrado', HttpStatus.NOT_FOUND)
     }
 
-    if (evento.criadoPorId !== token.sub) {
-      throw new HttpException('Acesso negado', HttpStatus.FORBIDDEN)
-    }
+    // if (evento.criadoPorId !== token.sub) {
+    //   throw new HttpException('Acesso negado', HttpStatus.FORBIDDEN)
+    // }
 
     await this.prisma.evento.delete({ where: { id } })
 

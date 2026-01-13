@@ -110,9 +110,9 @@ async update(
     throw new HttpException('User not found', HttpStatus.NOT_FOUND)
   }
 
-  if (user.id !== tokenPayload.sub) {
-    throw new HttpException('Acesso negado', HttpStatus.FORBIDDEN)
-  }
+  // if (user.id !== tokenPayload.sub) {
+  //   throw new HttpException('Acesso negado', HttpStatus.FORBIDDEN)
+  // }
 
   if (!dto.name && !dto.password && !dto.role && !file) {
     throw new HttpException('At least one field must be provided for update', HttpStatus.BAD_REQUEST)
@@ -168,9 +168,9 @@ try{
     throw new HttpException('Usuario nao existe', HttpStatus.BAD_REQUEST);
   }
 
-     if(user.id !== tokenPayload.sub){
-        throw new HttpException('Acesso negado', HttpStatus.FORBIDDEN);
-    }
+    //  if(user.id !== tokenPayload.sub){
+    //     throw new HttpException('Acesso negado', HttpStatus.FORBIDDEN);
+    // }
 
   await this.prisma.user.delete({
     where:{
@@ -194,9 +194,9 @@ async removeImagem(id: number, tokenPayload: PayloadTokenDto) {
     throw new HttpException('User not found', HttpStatus.NOT_FOUND)
   }
 
-  if (user.id !== tokenPayload.sub) {
-    throw new HttpException('Acesso negado', HttpStatus.FORBIDDEN)
-  }
+  // if (user.id !== tokenPayload.sub) {
+  //   throw new HttpException('Acesso negado', HttpStatus.FORBIDDEN)
+  // }
 
   // Remove o arquivo físico
   if (user.imagem) {
