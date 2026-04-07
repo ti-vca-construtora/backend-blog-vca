@@ -34,10 +34,7 @@
     "class-validator": "^0.14.3",
     "dotenv": "^17.2.3",
     "reflect-metadata": "^0.2.2",
-<<<<<<< HEAD
     "resend": "^4.1.2",
-=======
->>>>>>> c6ded7540776d2011921a19c4d062448741fb538
     "rxjs": "^7.8.1",
     "swagger-ui-express": "^5.0.1"
   },
