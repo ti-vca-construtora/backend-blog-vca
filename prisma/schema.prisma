@@ -20,7 +20,10 @@ model Task {
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
+<<<<<<< HEAD
   phone     String?
+=======
+>>>>>>> c6ded7540776d2011921a19c4d062448741fb538
   name      String?
   imagem    String?
   password  String
@@ -35,6 +38,7 @@ model User {
 
   postsCriados       Post[]   @relation("PostCriadoPor")
   postsAtualizados   Post[]   @relation("PostAtualizadoPor")
+<<<<<<< HEAD
 
   grupos             GrupoIntegrante[]
 }
@@ -62,6 +66,8 @@ model GrupoIntegrante {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([grupoId, userId])
+=======
+>>>>>>> c6ded7540776d2011921a19c4d062448741fb538
 }
 
 model Categoria{

@@ -1,0 +1,2 @@
+ALTER TABLE `Post`
+MODIFY `descricao` LONGTEXT;
