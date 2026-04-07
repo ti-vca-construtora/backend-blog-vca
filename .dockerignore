@@ -1,0 +1,22 @@
+# Node
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Build
+dist
+
+# Env
+.env
+.env.docker
+
+# Git
+.git
+.gitignore
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Prisma (client será gerado no container)
+node_modules/.prisma
