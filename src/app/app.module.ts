@@ -18,7 +18,7 @@ import { PostsModule } from '../posts/posts.module';
 
     // 🔥 AQUI ESTÁ A CORREÇÃO
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'files'),
+      rootPath: join(__dirname, '..', '..', 'files'),
       serveRoot: '/files',
     }),
 
