@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -6,6 +7,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateGrupoDto } from './dto/create-grupo.dto';
 import { UpdateGrupoDto } from './dto/update-grupo.dto';
+import { AdicionarIntegranteGrupoDto } from './dto/adicionar-usuario-grupo.dto';
 
 @Injectable()
 export class GruposService {
@@ -50,16 +52,8 @@ export class GruposService {
       include: {
         integrantes: {
           where: { ativo: true },
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                phone: true,
-                active: true,
-              },
-            },
+          orderBy: {
+            nome: 'asc',
           },
         },
       },
@@ -94,65 +88,44 @@ export class GruposService {
     });
   }
 
-  async addUser(grupoId: number, userId: number) {
+  async addIntegrante(grupoId: number, dto: AdicionarIntegranteGrupoDto) {
     const grupo = await this.prisma.grupo.findUnique({ where: { id: grupoId } });
     if (!grupo || !grupo.ativo) {
       throw new NotFoundException('Grupo nao encontrado ou inativo.');
     }
 
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user || !user.active) {
-      throw new NotFoundException('Usuario nao encontrado ou inativo.');
+    if (!dto.email && !dto.telefone) {
+      throw new BadRequestException(
+        'Informe ao menos email ou telefone para o integrante.',
+      );
     }
 
-    return this.prisma.grupoIntegrante.upsert({
-      where: {
-        grupoId_userId: {
-          grupoId,
-          userId,
-        },
-      },
-      create: {
+    return this.prisma.grupoIntegrante.create({
+      data: {
         grupoId,
-        userId,
+        nome: dto.nome,
+        email: dto.email,
+        telefone: dto.telefone,
         ativo: true,
-      },
-      update: {
-        ativo: true,
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-          },
-        },
       },
     });
   }
 
-  async removeUser(grupoId: number, userId: number) {
-    const registro = await this.prisma.grupoIntegrante.findUnique({
+  async removeIntegrante(grupoId: number, integranteId: number) {
+    const registro = await this.prisma.grupoIntegrante.findFirst({
       where: {
-        grupoId_userId: {
-          grupoId,
-          userId,
-        },
+        id: integranteId,
+        grupoId,
       },
     });
 
     if (!registro || !registro.ativo) {
-      throw new NotFoundException('Usuario nao esta ativo neste grupo.');
+      throw new NotFoundException('Integrante nao esta ativo neste grupo.');
     }
 
     return this.prisma.grupoIntegrante.update({
       where: {
-        grupoId_userId: {
-          grupoId,
-          userId,
-        },
+        id: integranteId,
       },
       data: {
         ativo: false,

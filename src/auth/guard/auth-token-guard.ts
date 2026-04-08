@@ -1,14 +1,12 @@
 import {
   CanActivate,
   ExecutionContext,
-  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common'
 import { Request } from 'express'
 import { JwtService } from '@nestjs/jwt'
-import jwtConfig from '../config/jwt.config'
-import type { ConfigType } from '@nestjs/config'
+import { ConfigService } from '@nestjs/config'
 import { REQUEST_TOKEN_PAYLOAD_NAME } from '../common/auth.constants'
 import { PrismaService } from 'src/prisma/prisma.service'
 
@@ -17,9 +15,7 @@ export class AuthTokenGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
-
-    @Inject(jwtConfig.KEY)
-    private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
+    private readonly configService: ConfigService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -34,10 +30,14 @@ export class AuthTokenGuard implements CanActivate {
     }
 
     try {
+      const jwtSecret = this.configService.get<string>('JWT_SECRET')
+      const jwtAudience = this.configService.get<string>('JWT_TOKEN_AUDIENCE')
+      const jwtIssuer = this.configService.get<string>('JWT_TOKEN_ISSUER')
+
       const payload = await this.jwtService.verifyAsync(token, {
-        secret: this.jwtConfiguration.secret,
-        audience: this.jwtConfiguration.audience,
-        issuer: this.jwtConfiguration.issuer,
+        secret: jwtSecret,
+        audience: jwtAudience,
+        issuer: jwtIssuer,
       })
 
       //  NORMALIZAÇÃO CRÍTICA

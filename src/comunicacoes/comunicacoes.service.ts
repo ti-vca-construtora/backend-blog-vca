@@ -32,19 +32,6 @@ export class ComunicacoesService {
       where: {
         grupoId: dto.grupoId,
         ativo: true,
-        user: {
-          active: true,
-        },
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-          },
-        },
       },
     });
 
@@ -54,34 +41,34 @@ export class ComunicacoesService {
 
     const resultados = await Promise.allSettled(
       integrantes.map(async (integrante) => {
-        const nome = integrante.user.name ?? 'Usuario';
+        const nome = integrante.nome ?? 'Integrante';
 
         if (dto.canal === CanalMensagem.EMAIL) {
-          if (!integrante.user.email) {
-            throw new Error('Usuario sem email.');
+          if (!integrante.email) {
+            throw new Error('Integrante sem email.');
           }
 
           const assunto = dto.assunto ?? `Comunicado para grupo ${grupo.nome}`;
           const html = `<p>Ola, ${nome}.</p><p>${dto.mensagem}</p>`;
 
           await this.emailService.send({
-            to: integrante.user.email,
+            to: integrante.email,
             subject: assunto,
             html,
           });
-          return integrante.user.id;
+          return integrante.id;
         }
 
-        if (!integrante.user.phone) {
-          throw new Error('Usuario sem telefone.');
+        if (!integrante.telefone) {
+          throw new Error('Integrante sem telefone.');
         }
 
         await this.whatsappService.enviarMensagem(
-          integrante.user.phone,
+          integrante.telefone,
           nome,
           dto.mensagem,
         );
-        return integrante.user.id;
+        return integrante.id;
       }),
     );
 

@@ -1,0 +1,19 @@
+{
+  "database": {
+    "type": "mysql",
+    "host": "localhost",
+    "port": 3306,
+    "name": "blog_vca",
+    "user": "root",
+    "password": ""
+  },
+  "backup": {
+    "path": "c:/projetos/blog_vca_fix/backup-module/storage/backups",
+    "retention_days": 7,
+    "compression": true
+  },
+  "docker": {
+    "enabled": false,
+    "container_name": "blog_vca_mysql"
+  }
+}

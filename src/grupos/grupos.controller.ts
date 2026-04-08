@@ -13,7 +13,7 @@ import {
 import { GruposService } from './grupos.service';
 import { CreateGrupoDto } from './dto/create-grupo.dto';
 import { UpdateGrupoDto } from './dto/update-grupo.dto';
-import { AdicionarUsuarioGrupoDto } from './dto/adicionar-usuario-grupo.dto';
+import { AdicionarIntegranteGrupoDto } from './dto/adicionar-usuario-grupo.dto';
 
 @Controller('grupos')
 export class GruposController {
@@ -44,19 +44,19 @@ export class GruposController {
     return this.gruposService.deactivate(id);
   }
 
-  @Post(':id/usuarios')
-  addUser(
+  @Post(':id/integrantes')
+  addIntegrante(
     @Param('id', ParseIntPipe) grupoId: number,
-    @Body() dto: AdicionarUsuarioGrupoDto,
+    @Body() dto: AdicionarIntegranteGrupoDto,
   ) {
-    return this.gruposService.addUser(grupoId, dto.userId);
+    return this.gruposService.addIntegrante(grupoId, dto);
   }
 
-  @Delete(':id/usuarios/:userId')
-  removeUser(
+  @Delete(':id/integrantes/:integranteId')
+  removeIntegrante(
     @Param('id', ParseIntPipe) grupoId: number,
-    @Param('userId', ParseIntPipe) userId: number,
+    @Param('integranteId', ParseIntPipe) integranteId: number,
   ) {
-    return this.gruposService.removeUser(grupoId, userId);
+    return this.gruposService.removeIntegrante(grupoId, integranteId);
   }
 }
