@@ -14,7 +14,7 @@ export class PostsService {
   constructor(private prisma: PrismaService) {}
 
   async findAll(filters: PostsFilterDto) {
-     const {search, categoriaId, status} = filters;
+    const { search, categoriaId, status } = filters
 
     return this.prisma.post.findMany({
       where: {
@@ -26,9 +26,9 @@ export class PostsService {
         ],
       }),
 
-      ...(categoriaId && { categoriaId }),
-      ...(status !== undefined && { status }),
-    },
+        ...(categoriaId && { categoriaId }),
+        ...(status !== undefined && { status }),
+      },
       include: {
         categoria: true,
         criadoPor: { select: { id: true, name: true } },

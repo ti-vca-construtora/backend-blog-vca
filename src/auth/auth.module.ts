@@ -8,6 +8,7 @@ import { HashingServiceProtocol } from './hash/hashing.service'
 import { BcryptService } from './hash/bcrypt.service'
 import { SignOptions } from 'jsonwebtoken'
 import { AuthController } from './auth.controller'
+import { AuthTokenGuard } from './guard/auth-token-guard'
 
 @Global()
 @Module({
@@ -16,6 +17,7 @@ import { AuthController } from './auth.controller'
     ConfigModule.forFeature(jwtConfig),
 
     JwtModule.registerAsync({
+      imports: [ConfigModule.forFeature(jwtConfig)],
       inject: [jwtConfig.KEY],
       useFactory: (
         jwt: ConfigType<typeof jwtConfig>,
@@ -36,12 +38,13 @@ import { AuthController } from './auth.controller'
 
   providers: [
     AuthService,
+    AuthTokenGuard,
     {
       provide: HashingServiceProtocol,
       useClass: BcryptService,
     },
   ],
 
-  exports: [AuthService, HashingServiceProtocol, JwtModule],
+  exports: [AuthService, HashingServiceProtocol, JwtModule, AuthTokenGuard],
 })
 export class AuthModule {}
