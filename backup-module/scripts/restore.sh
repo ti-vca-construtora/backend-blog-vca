@@ -18,7 +18,44 @@ fi
 
 read_json() {
   local key="$1"
-  node -e "const fs=require('fs');const c=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));const v='${key}'.split('.').reduce((o,k)=>o?.[k],c);if(v===undefined){process.exit(2)}process.stdout.write(String(v));" "$CONFIG_FILE"
+  if command -v jq >/dev/null 2>&1; then
+    jq -r ".${key}" "$CONFIG_FILE"
+    return
+  fi
+
+  if command -v python3 >/dev/null 2>&1; then
+    python3 - "$CONFIG_FILE" "$key" << 'PY'
+import json
+import sys
+
+config_path = sys.argv[1]
+key = sys.argv[2]
+
+with open(config_path, 'r', encoding='utf-8') as fh:
+    data = json.load(fh)
+
+value = data
+for part in key.split('.'):
+    value = value.get(part) if isinstance(value, dict) else None
+
+if value is None:
+    sys.exit(2)
+
+if isinstance(value, bool):
+    print('true' if value else 'false')
+else:
+    print(value)
+PY
+    return
+  fi
+
+  if command -v node >/dev/null 2>&1; then
+    node -e "const fs=require('fs');const c=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));const v='${key}'.split('.').reduce((o,k)=>o?.[k],c);if(v===undefined){process.exit(2)}process.stdout.write(String(v));" "$CONFIG_FILE"
+    return
+  fi
+
+  echo "Nenhum leitor JSON encontrado (jq, python3 ou node)." >&2
+  exit 1
 }
 
 DB_HOST="$(read_json database.host)"
