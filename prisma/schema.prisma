@@ -47,6 +47,7 @@ model Grupo {
   updatedAt   DateTime         @updatedAt
 
   integrantes GrupoIntegrante[]
+  historicos  HistoricoMensagem[]
 }
 
 model GrupoIntegrante {
@@ -142,4 +143,21 @@ model Story {
   url         String
   dataInicio  DateTime
   dataTermino DateTime
+}
+
+model HistoricoMensagem {
+  id              Int      @id @default(autoincrement())
+  grupoId         Int
+  grupoNome       String
+  integranteId    Int
+  integranteNome  String
+  destinatario    String
+  canal           String
+  assunto         String?
+  mensagem        String   @db.Text
+  status          String
+  erro            String?  @db.Text
+  criadoEm        DateTime @default(now())
+
+  grupo           Grupo    @relation(fields: [grupoId], references: [id])
 }
