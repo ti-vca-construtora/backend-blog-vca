@@ -55,6 +55,61 @@ export class ComunicacoesService {
     };
   }
 
+  private buildEmailHtml(
+    nome: string,
+    mensagem: string,
+    post?: {
+      titulo: string;
+      subtitulo?: string | null;
+      imagem?: string | null;
+      descricao?: string | null;
+    },
+  ): string {
+    if (!post) {
+      return `<p>Ola, ${nome}.</p><p>${mensagem}</p>`;
+    }
+
+    const imagemHtml = post.imagem
+      ? `<img src="${post.imagem}" alt="${post.titulo}" style="max-width:100%;height:auto;display:block;margin:0 auto 24px;" />`
+      : '';
+
+    const subtituloHtml = post.subtitulo
+      ? `<h2 style="font-size:18px;color:#555;margin:0 0 16px;">${post.subtitulo}</h2>`
+      : '';
+
+    const descricaoHtml = post.descricao
+      ? `<div style="font-size:15px;color:#333;line-height:1.7;margin-bottom:24px;">${post.descricao}</div>`
+      : '';
+
+    return `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0" /></head>
+<body style="margin:0;padding:0;background:#f4f4f4;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:32px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
+        <tr>
+          <td style="padding:32px 40px 0;">
+            <p style="font-size:16px;color:#333;margin:0 0 24px;">Ola, ${nome}.</p>
+            <p style="font-size:15px;color:#555;margin:0 0 32px;">${mensagem}</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#f9f9f9;padding:28px 40px;border-top:1px solid #e8e8e8;">
+            <h1 style="font-size:22px;color:#222;margin:0 0 12px;">${post.titulo}</h1>
+            ${subtituloHtml}
+            ${imagemHtml}
+            ${descricaoHtml}
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`.trim();
+  }
+
   async enviarParaGrupo(dto: EnviarMensagemGrupoDto) {
     const grupo = await this.prisma.grupo.findUnique({
       where: { id: dto.grupoId },
@@ -62,6 +117,21 @@ export class ComunicacoesService {
 
     if (!grupo || !grupo.ativo) {
       throw new NotFoundException('Grupo nao encontrado ou inativo.');
+    }
+
+    let post: { titulo: string; subtitulo?: string | null; imagem?: string | null; descricao?: string | null } | undefined;
+
+    if (dto.postId) {
+      const postEncontrado = await this.prisma.post.findFirst({
+        where: { id: dto.postId },
+        select: { titulo: true, subtitulo: true, imagem: true, descricao: true },
+      });
+
+      if (!postEncontrado) {
+        throw new NotFoundException('Post nao encontrado.');
+      }
+
+      post = postEncontrado;
     }
 
     const integrantes = await this.prisma.grupoIntegrante.findMany({
@@ -89,7 +159,7 @@ export class ComunicacoesService {
 
             destinatario = integrante.email;
             const assunto = dto.assunto ?? `Comunicado para grupo ${grupo.nome}`;
-            const html = `<p>Ola, ${nome}.</p><p>${dto.mensagem}</p>`;
+            const html = this.buildEmailHtml(nome, dto.mensagem, post);
 
             await this.emailService.send({
               to: integrante.email,
