@@ -176,17 +176,24 @@ export class ComunicacoesService {
     let post: { id: number; titulo: string; subtitulo?: string | null; imagem?: string | null; descricao?: string | null } | undefined;
 
     if (dto.postId) {
-      const postEncontrado = await this.prisma.post.findFirst({
-        where: { id: dto.postId },
-        select: { id: true, titulo: true, subtitulo: true, imagem: true, descricao: true },
-      });
+  const response = await fetch(
+    `https://blog.vcatech.cloud/posts/${dto.postId}`
+  );
 
-      if (!postEncontrado) {
-        throw new NotFoundException('Post nao encontrado.');
-      }
+  if (!response.ok) {
+    throw new NotFoundException('Post nao encontrado na API.');
+  }
 
-      post = postEncontrado;
-    }
+  const postData = await response.json();
+
+  post = {
+    id: postData.id,
+    titulo: postData.titulo,
+    subtitulo: postData.subtitulo,
+    imagem: postData.imagem,
+    descricao: postData.descricao,
+  };
+}
 
     const integrantes = await this.prisma.grupoIntegrante.findMany({
       where: {
