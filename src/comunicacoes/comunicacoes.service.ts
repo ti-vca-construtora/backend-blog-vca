@@ -12,6 +12,15 @@ import {
   EnviarMensagemGrupoDto,
 } from './dto/enviar-mensagem-grupo.dto';
 
+function limparHtml(html: string): string {
+  return html
+    .replace(/<span[^>]*>/g, '') // remove spans
+    .replace(/<\/span>/g, '')
+    .replace(/ id="[^"]*"/g, '') // remove ids
+    .replace(/ style="[^"]*"/g, '') // remove estilos pesados
+    .replace(/<p>/g, '<p style="margin:0 0 16px;">'); // padroniza parágrafos
+}
+
 @Injectable()
 export class ComunicacoesService {
   constructor(
@@ -164,6 +173,8 @@ export class ComunicacoesService {
 </html>`.trim();
   }
 
+  
+
   async enviarParaGrupo(dto: EnviarMensagemGrupoDto) {
     const grupo = await this.prisma.grupo.findUnique({
       where: { id: dto.grupoId },
@@ -186,12 +197,13 @@ export class ComunicacoesService {
 
   const postData = await response.json();
 
+
   post = {
     id: postData.id,
     titulo: postData.titulo,
     subtitulo: postData.subtitulo,
     imagem: postData.imagem,
-    descricao: postData.descricao,
+    descricao: limparHtml(postData.descricao),
   };
 }
 
@@ -219,7 +231,7 @@ export class ComunicacoesService {
             }
 
             destinatario = integrante.email;
-            const assunto = dto.assunto ?? `Comunicado para grupo ${grupo.nome}`;
+            const assunto = dto.assunto ?? `Comunicado para grupo ${grupo!.nome}`;
             const html = this.buildEmailHtml(nome, dto.mensagem, post);
 
             await this.emailService.send({
@@ -242,8 +254,8 @@ export class ComunicacoesService {
 
           await this.prisma.historicoMensagem.create({
             data: {
-              grupoId: grupo.id,
-              grupoNome: grupo.nome,
+              grupoId: grupo!.id,
+              grupoNome: grupo!.nome,
               integranteId: integrante.id,
               integranteNome: nome,
               destinatario,
@@ -260,8 +272,8 @@ export class ComunicacoesService {
 
           await this.prisma.historicoMensagem.create({
             data: {
-              grupoId: grupo.id,
-              grupoNome: grupo.nome,
+              grupoId: grupo!.id,
+              grupoNome: grupo!.nome,
               integranteId: integrante.id,
               integranteNome: nome,
               destinatario: destinatario || (dto.canal === CanalMensagem.EMAIL ? integrante.email ?? '' : integrante.telefone ?? ''),
