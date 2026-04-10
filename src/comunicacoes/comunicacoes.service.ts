@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from './email.service';
 import { WhatsappService } from './whatsapp.service';
@@ -17,6 +18,7 @@ export class ComunicacoesService {
     private readonly prisma: PrismaService,
     private readonly emailService: EmailService,
     private readonly whatsappService: WhatsappService,
+    private readonly configService: ConfigService,
   ) {}
 
   async historico(filtros: {
@@ -59,27 +61,67 @@ export class ComunicacoesService {
     nome: string,
     mensagem: string,
     post?: {
+      id: number;
       titulo: string;
       subtitulo?: string | null;
       imagem?: string | null;
       descricao?: string | null;
     },
   ): string {
+    const baseUrl = (this.configService.get<string>('APP_URL') ?? '').replace(/\/$/, '');
+    const siteUrl = (this.configService.get<string>('SITE_URL') ?? '').replace(/\/$/, '');
+
     if (!post) {
-      return `<p>Ola, ${nome}.</p><p>${mensagem}</p>`;
+      return `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0" /></head>
+<body style="margin:0;padding:0;background:#f4f4f4;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:32px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
+        <tr><td style="background:#1a1a1a;padding:20px 40px;text-align:center;">
+          ${siteUrl ? `<img src="${siteUrl}/assets/logo-vca-BccREKY9.svg" alt="VCA Construtora" height="36" style="display:inline-block;" />` : '<span style="color:#fff;font-size:20px;font-weight:bold;">VCA Construtora</span>'}
+        </td></tr>
+        <tr><td style="padding:32px 40px;">
+          <p style="font-size:16px;color:#333;margin:0 0 16px;">Ola, ${nome}.</p>
+          <p style="font-size:15px;color:#555;line-height:1.7;margin:0;">${mensagem}</p>
+        </td></tr>
+        <tr><td style="background:#f4f4f4;padding:16px 40px;text-align:center;border-top:1px solid #e8e8e8;">
+          <p style="font-size:12px;color:#999;margin:0;">© 2026 VCA Construtora. Todos os direitos reservados.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`.trim();
     }
 
-    const imagemHtml = post.imagem
-      ? `<img src="${post.imagem}" alt="${post.titulo}" style="max-width:100%;height:auto;display:block;margin:0 auto 24px;" />`
+    const imagemSrc = post.imagem
+      ? (post.imagem.startsWith('http') ? post.imagem : `${baseUrl}/files/${post.imagem}`)
+      : null;
+
+    const imagemHtml = imagemSrc
+      ? `<img src="${imagemSrc}" alt="${post.titulo}" style="max-width:100%;height:auto;display:block;margin:0 0 28px;border-radius:6px;" />`
       : '';
 
     const subtituloHtml = post.subtitulo
-      ? `<h2 style="font-size:18px;color:#555;margin:0 0 16px;">${post.subtitulo}</h2>`
+      ? `<p style="font-size:17px;color:#666;margin:0 0 24px;line-height:1.5;font-style:italic;">${post.subtitulo}</p>`
       : '';
 
-    const descricaoHtml = post.descricao
-      ? `<div style="font-size:15px;color:#333;line-height:1.7;margin-bottom:24px;">${post.descricao}</div>`
+    const descricaoComUrls = baseUrl && post.descricao
+      ? post.descricao.replace(/src="(\/files\/)/g, `src="${baseUrl}/files/`)
+      : post.descricao ?? '';
+
+    const postLink = siteUrl ? `${siteUrl}/noticia/${post.id}` : '';
+
+    const botaoHtml = postLink
+      ? `<table cellpadding="0" cellspacing="0" style="margin:28px 0 0;"><tr><td style="background:#c8a55a;border-radius:4px;"><a href="${postLink}" style="display:inline-block;padding:12px 28px;color:#fff;text-decoration:none;font-size:14px;font-weight:bold;">Ler no site</a></td></tr></table>`
       : '';
+
+    const logoHtml = siteUrl
+      ? `<img src="${siteUrl}/assets/logo-vca-BccREKY9.svg" alt="VCA Construtora" height="36" style="display:inline-block;" />`
+      : '<span style="color:#fff;font-size:20px;font-weight:bold;">VCA Construtora</span>';
 
     return `
 <!DOCTYPE html>
@@ -89,20 +131,32 @@ export class ComunicacoesService {
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:32px 0;">
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
-        <tr>
-          <td style="padding:32px 40px 0;">
-            <p style="font-size:16px;color:#333;margin:0 0 24px;">Ola, ${nome}.</p>
-            <p style="font-size:15px;color:#555;margin:0 0 32px;">${mensagem}</p>
-          </td>
-        </tr>
-        <tr>
-          <td style="background:#f9f9f9;padding:28px 40px;border-top:1px solid #e8e8e8;">
-            <h1 style="font-size:22px;color:#222;margin:0 0 12px;">${post.titulo}</h1>
-            ${subtituloHtml}
-            ${imagemHtml}
-            ${descricaoHtml}
-          </td>
-        </tr>
+
+        <!-- Header VCA -->
+        <tr><td style="background:#1a1a1a;padding:20px 40px;text-align:center;">
+          ${logoHtml}
+        </td></tr>
+
+        <!-- Mensagem do remetente -->
+        <tr><td style="padding:28px 40px 24px;border-bottom:1px solid #e8e8e8;">
+          <p style="font-size:15px;color:#333;margin:0 0 8px;">Ola, ${nome}.</p>
+          <p style="font-size:15px;color:#555;line-height:1.7;margin:0;">${mensagem}</p>
+          ${botaoHtml}
+        </td></tr>
+
+        <!-- Conteudo do post -->
+        <tr><td style="padding:32px 40px;">
+          <h1 style="font-size:24px;color:#1a1a1a;margin:0 0 12px;line-height:1.3;">${post.titulo}</h1>
+          ${subtituloHtml}
+          ${imagemHtml}
+          <div style="font-size:15px;color:#333;line-height:1.8;">${descricaoComUrls}</div>
+        </td></tr>
+
+        <!-- Footer -->
+        <tr><td style="background:#1a1a1a;padding:20px 40px;text-align:center;">
+          <p style="font-size:12px;color:#aaa;margin:0;">© 2026 VCA Construtora. Todos os direitos reservados.</p>
+        </td></tr>
+
       </table>
     </td></tr>
   </table>
@@ -119,12 +173,12 @@ export class ComunicacoesService {
       throw new NotFoundException('Grupo nao encontrado ou inativo.');
     }
 
-    let post: { titulo: string; subtitulo?: string | null; imagem?: string | null; descricao?: string | null } | undefined;
+    let post: { id: number; titulo: string; subtitulo?: string | null; imagem?: string | null; descricao?: string | null } | undefined;
 
     if (dto.postId) {
       const postEncontrado = await this.prisma.post.findFirst({
         where: { id: dto.postId },
-        select: { titulo: true, subtitulo: true, imagem: true, descricao: true },
+        select: { id: true, titulo: true, subtitulo: true, imagem: true, descricao: true },
       });
 
       if (!postEncontrado) {

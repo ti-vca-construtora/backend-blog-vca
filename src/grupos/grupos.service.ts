@@ -8,6 +8,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateGrupoDto } from './dto/create-grupo.dto';
 import { UpdateGrupoDto } from './dto/update-grupo.dto';
 import { AdicionarIntegranteGrupoDto } from './dto/adicionar-usuario-grupo.dto';
+import { UpdateIntegranteGrupoDto } from './dto/update-integrante-grupo.dto';
 
 @Injectable()
 export class GruposService {
@@ -107,6 +108,29 @@ export class GruposService {
         email: dto.email,
         telefone: dto.telefone,
         ativo: true,
+      },
+    });
+  }
+
+  async updateIntegrante(
+    grupoId: number,
+    integranteId: number,
+    dto: UpdateIntegranteGrupoDto,
+  ) {
+    const registro = await this.prisma.grupoIntegrante.findFirst({
+      where: { id: integranteId, grupoId },
+    });
+
+    if (!registro || !registro.ativo) {
+      throw new NotFoundException('Integrante nao esta ativo neste grupo.');
+    }
+
+    return this.prisma.grupoIntegrante.update({
+      where: { id: integranteId },
+      data: {
+        nome: dto.nome,
+        email: dto.email,
+        telefone: dto.telefone,
       },
     });
   }

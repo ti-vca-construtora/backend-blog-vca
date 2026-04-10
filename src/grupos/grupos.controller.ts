@@ -14,6 +14,7 @@ import { GruposService } from './grupos.service';
 import { CreateGrupoDto } from './dto/create-grupo.dto';
 import { UpdateGrupoDto } from './dto/update-grupo.dto';
 import { AdicionarIntegranteGrupoDto } from './dto/adicionar-usuario-grupo.dto';
+import { UpdateIntegranteGrupoDto } from './dto/update-integrante-grupo.dto';
 
 @Controller('grupos')
 export class GruposController {
@@ -50,6 +51,15 @@ export class GruposController {
     @Body() dto: AdicionarIntegranteGrupoDto,
   ) {
     return this.gruposService.addIntegrante(grupoId, dto);
+  }
+
+  @Patch(':id/integrantes/:integranteId')
+  updateIntegrante(
+    @Param('id', ParseIntPipe) grupoId: number,
+    @Param('integranteId', ParseIntPipe) integranteId: number,
+    @Body() dto: UpdateIntegranteGrupoDto,
+  ) {
+    return this.gruposService.updateIntegrante(grupoId, integranteId, dto);
   }
 
   @Delete(':id/integrantes/:integranteId')
