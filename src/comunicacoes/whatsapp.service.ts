@@ -1,12 +1,14 @@
 import {
   Injectable,
   InternalServerErrorException,
+  Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class WhatsappService {
   private readonly baseUrl = 'https://api.botmaker.com/v2.0';
+  private readonly logger = new Logger(WhatsappService.name);
 
   constructor(private readonly configService: ConfigService) {}
 
@@ -52,6 +54,8 @@ export class WhatsappService {
       variables,
     };
 
+    this.logger.log(`Enviando WhatsApp para ${phone} | channelId: ${this.channelId} | body: ${JSON.stringify(body)}`);
+
     const response = await fetch(`${this.baseUrl}/chats-actions/trigger-intent`, {
       method: 'POST',
       headers: this.headers(),
@@ -59,8 +63,12 @@ export class WhatsappService {
     });
 
     const text = await response.text();
+
     if (!response.ok) {
+      this.logger.error(`Falha Botmaker para ${phone} | status: ${response.status} | resposta: ${text}`);
       throw new InternalServerErrorException(`Erro ao enviar WhatsApp Botmaker: ${text}`);
     }
+
+    this.logger.log(`WhatsApp enviado para ${phone} | status: ${response.status} | resposta: ${text}`);
   }
 }
