@@ -155,6 +155,7 @@ model HistoricoMensagem {
   canal           String
   assunto         String?
   mensagem        String   @db.Text
+  postId          Int?
   status          String
   erro            String?  @db.Text
   criadoEm        DateTime @default(now())

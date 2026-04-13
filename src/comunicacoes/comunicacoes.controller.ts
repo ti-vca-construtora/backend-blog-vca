@@ -16,9 +16,10 @@ export class ComunicacoesController {
     @Query('grupoId', new ParseIntPipe({ optional: true })) grupoId?: number,
     @Query('canal') canal?: string,
     @Query('status') status?: string,
+    @Query('postId', new ParseIntPipe({ optional: true })) postId?: number,
     @Query('pagina', new ParseIntPipe({ optional: true })) pagina?: number,
     @Query('limite', new ParseIntPipe({ optional: true })) limite?: number,
   ) {
-    return this.comunicacoesService.historico({ grupoId, canal, status, pagina, limite });
+    return this.comunicacoesService.historico({ grupoId, canal, status, postId, pagina, limite });
   }
 }

@@ -34,6 +34,7 @@ export class ComunicacoesService {
     grupoId?: number;
     canal?: string;
     status?: string;
+    postId?: number;
     pagina?: number;
     limite?: number;
   }) {
@@ -45,6 +46,7 @@ export class ComunicacoesService {
       ...(filtros.grupoId ? { grupoId: filtros.grupoId } : {}),
       ...(filtros.canal ? { canal: filtros.canal } : {}),
       ...(filtros.status ? { status: filtros.status } : {}),
+      ...(filtros.postId ? { postId: filtros.postId } : {}),
     };
 
     const [total, dados] = await Promise.all([
@@ -263,6 +265,7 @@ export class ComunicacoesService {
               canal: dto.canal,
               assunto: dto.assunto ?? null,
               mensagem: dto.mensagem,
+              postId: dto.postId ?? null,
               status: 'enviado',
             },
           });
@@ -281,6 +284,7 @@ export class ComunicacoesService {
               canal: dto.canal,
               assunto: dto.assunto ?? null,
               mensagem: dto.mensagem,
+              postId: dto.postId ?? null,
               status: 'falha',
               erro: erroMsg,
             },
