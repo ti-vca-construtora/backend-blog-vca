@@ -249,6 +249,7 @@ export class ComunicacoesService {
               integrante.telefone,
               nome,
               dto.mensagem,
+              post,
             );
           }
 
