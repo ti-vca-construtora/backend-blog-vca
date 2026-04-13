@@ -109,7 +109,7 @@ export class ComunicacoesService {
     }
 
     const imagemSrc = post.imagem
-      ? (post.imagem.startsWith('http') ? post.imagem : `${siteUrl}/files/${post.imagem}`)
+      ? (post.imagem.startsWith('http') ? post.imagem : `${baseUrl}/files/${post.imagem}`)
       : null;
 
     const imagemHtml = imagemSrc
