@@ -168,7 +168,12 @@ export class GruposService {
     });
   }
 
-  async importarIntegrantes(buffer: Buffer) {
+  async importarIntegrantes(grupoId: number, buffer: Buffer) {
+    const grupo = await this.prisma.grupo.findUnique({ where: { id: grupoId } });
+    if (!grupo || !grupo.ativo) {
+      throw new NotFoundException('Grupo não encontrado ou inativo.');
+    }
+
     const workbook = XLSX.read(buffer, { type: 'buffer' });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rows: Array<Record<string, unknown>> = XLSX.utils.sheet_to_json(sheet);
@@ -184,32 +189,20 @@ export class GruposService {
       const row = rows[i];
       const linha = i + 2; // linha 1 é o cabeçalho
 
-      const grupoId = Number(row['grupoId'] ?? row['grupo_id'] ?? row['GrupoId']);
       const nome = String(row['nome'] ?? row['Nome'] ?? '').trim();
-      const email = row['email'] ?? row['Email'];
       const telefone = row['telefone'] ?? row['Telefone'];
-
-      if (!grupoId || isNaN(grupoId)) {
-        erros.push({ linha, motivo: 'grupoId inválido ou não informado.' });
-        continue;
-      }
+      const email = row['email'] ?? row['Email'];
 
       if (!nome) {
         erros.push({ linha, motivo: 'nome é obrigatório.' });
         continue;
       }
 
-      const emailStr = email ? String(email).trim() : undefined;
       const telefoneStr = telefone ? String(telefone).trim() : undefined;
+      const emailStr = email ? String(email).trim() : undefined;
 
       if (!emailStr && !telefoneStr) {
         erros.push({ linha, motivo: 'Informe ao menos email ou telefone.' });
-        continue;
-      }
-
-      const grupo = await this.prisma.grupo.findUnique({ where: { id: grupoId } });
-      if (!grupo || !grupo.ativo) {
-        erros.push({ linha, motivo: `Grupo ${grupoId} não encontrado ou inativo.` });
         continue;
       }
 
@@ -218,8 +211,8 @@ export class GruposService {
           data: {
             grupoId,
             nome,
-            email: emailStr,
             telefone: telefoneStr,
+            email: emailStr,
             ativo: true,
           },
         });

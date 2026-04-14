@@ -86,7 +86,7 @@ export class GruposController {
     return this.gruposService.removeIntegrante(grupoId, integranteId);
   }
 
-  @Post('importar-integrantes')
+  @Post(':id/importar-integrantes')
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),
@@ -102,10 +102,13 @@ export class GruposController {
       limits: { fileSize: 5 * 1024 * 1024 },
     }),
   )
-  importarIntegrantes(@UploadedFile() file: Express.Multer.File) {
+  importarIntegrantes(
+    @Param('id', ParseIntPipe) grupoId: number,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
     if (!file) {
       throw new BadRequestException('Arquivo não enviado.');
     }
-    return this.gruposService.importarIntegrantes(file.buffer);
+    return this.gruposService.importarIntegrantes(grupoId, file.buffer);
   }
 }
