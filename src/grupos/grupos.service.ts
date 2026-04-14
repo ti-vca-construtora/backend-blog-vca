@@ -9,6 +9,7 @@ import { CreateGrupoDto } from './dto/create-grupo.dto';
 import { UpdateGrupoDto } from './dto/update-grupo.dto';
 import { AdicionarIntegranteGrupoDto } from './dto/adicionar-usuario-grupo.dto';
 import { UpdateIntegranteGrupoDto } from './dto/update-integrante-grupo.dto';
+import * as XLSX from 'xlsx';
 
 @Injectable()
 export class GruposService {
@@ -89,6 +90,16 @@ export class GruposService {
     });
   }
 
+  async remove(id: number) {
+    const grupo = await this.prisma.grupo.findUnique({ where: { id } });
+    if (!grupo) {
+      throw new NotFoundException('Grupo nao encontrado.');
+    }
+
+    await this.prisma.grupo.delete({ where: { id } });
+    return { message: 'Grupo e todos os seus integrantes foram removidos.' };
+  }
+
   async addIntegrante(grupoId: number, dto: AdicionarIntegranteGrupoDto) {
     const grupo = await this.prisma.grupo.findUnique({ where: { id: grupoId } });
     if (!grupo || !grupo.ativo) {
@@ -155,5 +166,73 @@ export class GruposService {
         ativo: false,
       },
     });
+  }
+
+  async importarIntegrantes(buffer: Buffer) {
+    const workbook = XLSX.read(buffer, { type: 'buffer' });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows: Array<Record<string, unknown>> = XLSX.utils.sheet_to_json(sheet);
+
+    if (!rows.length) {
+      throw new BadRequestException('Planilha vazia ou sem dados válidos.');
+    }
+
+    const inseridos: number[] = [];
+    const erros: { linha: number; motivo: string }[] = [];
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const linha = i + 2; // linha 1 é o cabeçalho
+
+      const grupoId = Number(row['grupoId'] ?? row['grupo_id'] ?? row['GrupoId']);
+      const nome = String(row['nome'] ?? row['Nome'] ?? '').trim();
+      const email = row['email'] ?? row['Email'];
+      const telefone = row['telefone'] ?? row['Telefone'];
+
+      if (!grupoId || isNaN(grupoId)) {
+        erros.push({ linha, motivo: 'grupoId inválido ou não informado.' });
+        continue;
+      }
+
+      if (!nome) {
+        erros.push({ linha, motivo: 'nome é obrigatório.' });
+        continue;
+      }
+
+      const emailStr = email ? String(email).trim() : undefined;
+      const telefoneStr = telefone ? String(telefone).trim() : undefined;
+
+      if (!emailStr && !telefoneStr) {
+        erros.push({ linha, motivo: 'Informe ao menos email ou telefone.' });
+        continue;
+      }
+
+      const grupo = await this.prisma.grupo.findUnique({ where: { id: grupoId } });
+      if (!grupo || !grupo.ativo) {
+        erros.push({ linha, motivo: `Grupo ${grupoId} não encontrado ou inativo.` });
+        continue;
+      }
+
+      try {
+        const integrante = await this.prisma.grupoIntegrante.create({
+          data: {
+            grupoId,
+            nome,
+            email: emailStr,
+            telefone: telefoneStr,
+            ativo: true,
+          },
+        });
+        inseridos.push(integrante.id);
+      } catch {
+        erros.push({ linha, motivo: 'Erro ao inserir integrante.' });
+      }
+    }
+
+    return {
+      totalLinhas: rows.length,
+      inseridos: inseridos.length,
+      erros,
+    };
   }
 }
