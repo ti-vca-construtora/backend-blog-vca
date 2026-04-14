@@ -50,7 +50,7 @@ export class WhatsappService {
         channelId: this.channelId,
         contactId: phone,
       },
-      intentIdOrName: 'blog_notificacao',
+      intentIdOrName: 'blog_notificacao_v2',
       variables,
     };
 
