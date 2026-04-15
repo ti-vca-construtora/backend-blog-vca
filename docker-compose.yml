@@ -14,12 +14,19 @@ services:
       - mysql_data:/var/lib/mysql
     networks:
       - web
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   api:
     build: .
     container_name: blog_vca_api
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     env_file:
       - .env.docker
     ports:

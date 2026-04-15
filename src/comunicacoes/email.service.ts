@@ -1,6 +1,7 @@
 import {
   Injectable,
   InternalServerErrorException,
+  Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Resend } from 'resend';
@@ -14,6 +15,7 @@ interface SendEmailParams {
 @Injectable()
 export class EmailService {
   private readonly resend?: Resend;
+  private readonly logger = new Logger(EmailService.name);
 
   constructor(private readonly configService: ConfigService) {
     const apiKey = this.configService.get<string>('RESEND_API_KEY');
@@ -37,14 +39,16 @@ export class EmailService {
     }
 
     try {
-      await this.resend.emails.send({
+      const result = await this.resend.emails.send({
         from,
         to: params.to,
         subject: params.subject,
         html: params.html,
       });
+      this.logger.log(`Email enviado para ${params.to} | id: ${result?.data?.id}`);
       return true;
-    } catch {
+    } catch (err) {
+      this.logger.error(`Erro ao enviar email para ${params.to}: ${JSON.stringify(err)}`);
       throw new InternalServerErrorException('Erro ao enviar email.');
     }
   }
