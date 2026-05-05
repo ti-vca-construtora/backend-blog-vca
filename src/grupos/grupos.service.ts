@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateGrupoDto } from './dto/create-grupo.dto';
 import { UpdateGrupoDto } from './dto/update-grupo.dto';
@@ -96,7 +97,19 @@ export class GruposService {
       throw new NotFoundException('Grupo nao encontrado.');
     }
 
-    await this.prisma.grupo.delete({ where: { id } });
+    try {
+      await this.prisma.grupo.delete({ where: { id } });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2003'
+      ) {
+        throw new ConflictException(
+          'Nao foi possivel remover o grupo porque ele possui historico de mensagens vinculado.',
+        );
+      }
+      throw error;
+    }
     return { message: 'Grupo e todos os seus integrantes foram removidos.' };
   }
 
