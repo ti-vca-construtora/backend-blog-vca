@@ -21,4 +21,9 @@ export class EnviarMensagemGrupoDto {
   @IsString()
   @IsNotEmpty()
   mensagem!: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  postId?: number;
 }

@@ -22,5 +22,5 @@ RUN npm run build
 # Porta padrão da API
 EXPOSE 3000
 
-# Comando de produção
-CMD ["node", "dist/main.js"]
+# Aplica migrations e inicia a API
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
