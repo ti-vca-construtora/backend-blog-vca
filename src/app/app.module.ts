@@ -14,6 +14,7 @@ import { CategoriasModule } from 'src/categorias/categorias.module';
 import { UsersModule } from '../users/users.module';
 import { StoriesModule } from '../stories/stories.module';
 import { EventosModule } from '../eventos/eventos.module';
+import { AnalyticsModule } from '../analytics/analytics.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { EventosModule } from '../eventos/eventos.module';
     UsersModule,
     StoriesModule,
     EventosModule,
+    AnalyticsModule,
   ],
 })
 export class AppModule {}
