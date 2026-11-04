@@ -115,6 +115,11 @@ model Post {
   descricao     String?  @db.LongText
   status        Boolean  @default(true)
 
+  // SEO e planejamento editorial (opcionais)
+  seoTitulo     String?  @db.VarChar(120)
+  seoDescricao  String?  @db.VarChar(300)
+  palavrasChave String?  @db.VarChar(500)
+
   criadoPorId   Int
   atualizadoPorId Int?
 
