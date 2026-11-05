@@ -75,10 +75,20 @@ export class PostsService {
         subtitulo: dto.subtitulo,
         descricao: dto.descricao,
         status: dto.status ?? true,
+        seoTitulo: dto.seoTitulo,
+        seoDescricao: dto.seoDescricao,
+        palavrasChave: dto.palavrasChave,
         imagem: imageName,
         criadoPorId: token.sub,
       },
     })
+  }
+
+  async salvarImagemConteudo(file: Express.Multer.File) {
+    const ext = path.extname(file.originalname).toLowerCase() || '.jpg'
+    const arquivo = `${randomUUID()}${ext}`
+    await fs.writeFile(path.resolve(process.cwd(), 'files', arquivo), file.buffer)
+    return { arquivo }
   }
 
   async uploadDocumentos(

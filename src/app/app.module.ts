@@ -9,6 +9,12 @@ import { ComunicacoesModule } from '../comunicacoes/comunicacoes.module';
 import { BackupsModule } from '../backups/backups.module';
 import { AuthModule } from '../auth/auth.module';
 import { PostsModule } from '../posts/posts.module';
+import { BannersModule } from 'src/banners/banners.module';
+import { CategoriasModule } from 'src/categorias/categorias.module';
+import { UsersModule } from '../users/users.module';
+import { StoriesModule } from '../stories/stories.module';
+import { EventosModule } from '../eventos/eventos.module';
+import { AnalyticsModule } from '../analytics/analytics.module';
 
 @Module({
   imports: [
@@ -28,6 +34,12 @@ import { PostsModule } from '../posts/posts.module';
     ComunicacoesModule,
     BackupsModule,
     PostsModule,
+    BannersModule,
+    CategoriasModule,
+    UsersModule,
+    StoriesModule,
+    EventosModule,
+    AnalyticsModule,
   ],
 })
 export class AppModule {}
