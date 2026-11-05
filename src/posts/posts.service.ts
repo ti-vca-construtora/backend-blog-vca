@@ -84,6 +84,13 @@ export class PostsService {
     })
   }
 
+  async salvarImagemConteudo(file: Express.Multer.File) {
+    const ext = path.extname(file.originalname).toLowerCase() || '.jpg'
+    const arquivo = `${randomUUID()}${ext}`
+    await fs.writeFile(path.resolve(process.cwd(), 'files', arquivo), file.buffer)
+    return { arquivo }
+  }
+
   async uploadDocumentos(
   postId: number,
   files: Express.Multer.File[],
