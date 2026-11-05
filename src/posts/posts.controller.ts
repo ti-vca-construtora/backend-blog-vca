@@ -104,6 +104,33 @@ export class PostsController {
     return this.postsService.create(createPostDto, file, tokenPayload)
   }
 
+  @UseGuards(AuthTokenGuard)
+  @Post('imagens')
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Imagem inserida no corpo da notícia',
+    schema: {
+      type: 'object',
+      properties: { file: { type: 'string', format: 'binary' } },
+      required: ['file'],
+    },
+  })
+  @UseInterceptors(FileInterceptor('file'))
+  uploadImagemConteudo(
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({ fileType: /jpeg|jpg|png|webp/ })
+        .addMaxSizeValidator({ maxSize: 5 * 1024 * 1024 })
+        .build({
+          fileIsRequired: true,
+          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+        }),
+    )
+    file: Express.Multer.File,
+  ) {
+    return this.postsService.salvarImagemConteudo(file)
+  }
+
   // 🔒 Upload de documentos extras
   @UseGuards(AuthTokenGuard)
   @Post(':id/documentos')
