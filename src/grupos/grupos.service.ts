@@ -179,9 +179,25 @@ export class GruposService {
       throw new NotFoundException('Grupo não encontrado ou inativo.');
     }
 
-    const workbook = XLSX.read(buffer, { type: 'buffer' });
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const rows: Array<Record<string, unknown>> = XLSX.utils.sheet_to_json(sheet);
+    let rows: Array<Record<string, unknown>>;
+    try {
+      const workbook = XLSX.read(buffer, {
+        type: 'buffer',
+        cellFormula: false,
+        cellHTML: false,
+      });
+      const firstSheet = workbook.SheetNames[0];
+      if (!firstSheet || !workbook.Sheets[firstSheet]) {
+        throw new Error('Workbook has no readable worksheet');
+      }
+      rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(
+        workbook.Sheets[firstSheet],
+      );
+    } catch {
+      throw new BadRequestException(
+        'Arquivo de planilha inválido ou corrompido.',
+      );
+    }
 
     if (!rows.length) {
       throw new BadRequestException('Planilha vazia ou sem dados válidos.');

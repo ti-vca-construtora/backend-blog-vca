@@ -4,10 +4,10 @@ services:
     container_name: blog_vca_mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?required}
       MYSQL_DATABASE: blog_vca
-      MYSQL_USER: blog_user
-      MYSQL_PASSWORD: BlogUserPassword2026
+      MYSQL_USER: ${MYSQL_USER:?required}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?required}
     ports:
       - "3306:3306"
     volumes:
@@ -15,7 +15,7 @@ services:
     networks:
       - web
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      test: ["CMD-SHELL", 'MYSQL_PWD="$${MYSQL_ROOT_PASSWORD}" mysqladmin ping -h localhost -uroot --silent']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -29,6 +29,9 @@ services:
         condition: service_healthy
     env_file:
       - .env.docker
+    environment:
+      DATABASE_URL: ${DATABASE_URL_DOCKER:?required}
+      JWT_SECRET: ${JWT_SECRET_DOCKER:?required}
     ports:
       - "3000:3000"
     restart: always

@@ -1,4 +1,4 @@
-FROM node:20-alpine
+FROM node:22-alpine
 
 # Diretório de trabalho dentro do container
 WORKDIR /app
@@ -8,7 +8,7 @@ COPY package*.json ./
 COPY prisma ./prisma
 
 # Instala dependências
-RUN npm install
+RUN npm ci
 
 # Gera o client do Prisma
 RUN npx prisma generate

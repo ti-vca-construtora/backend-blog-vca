@@ -21,7 +21,7 @@ Objetivo:
 1. Instale dependencias:
 
 ```bash
-npm install
+npm ci
 ```
 
 2. Configure o arquivo .env com DATABASE_URL (MySQL).
@@ -29,9 +29,11 @@ npm install
 Exemplo:
 
 ```env
-DATABASE_URL="mysql://blog_user:BlogUserPassword2026@localhost:3306/blog_vca"
+DATABASE_URL="mysql://<usuario>:<senha>@localhost:3306/blog_vca"
 PORT=3000
 ```
+
+Para executar pelo Docker Compose, configure `MYSQL_ROOT_PASSWORD`, `MYSQL_USER`, `MYSQL_PASSWORD`, `DATABASE_URL_DOCKER` e `JWT_SECRET_DOCKER` no arquivo `.env` local, usando `.env.example` como referência. O `.env` é ignorado pelo Git; mantenha os valores reais fora dos arquivos versionados.
 
 3. Aplique migracoes:
 
@@ -141,7 +143,7 @@ Use sempre:
 Se estiver usando o container MySQL do projeto (nome padrao blog_vca_mysql):
 
 ```bash
-docker exec -i blog_vca_mysql sh -c 'mysqldump -uroot -proot --databases blog_vca --routines --triggers --single-transaction' > backup_blog_vca_$(date +%F_%H-%M-%S).sql
+docker exec -i blog_vca_mysql sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysqldump -uroot --databases blog_vca --routines --triggers --single-transaction' > backup_blog_vca_$(date +%F_%H-%M-%S).sql
 ```
 
 Validacao rapida do backup:
@@ -214,7 +216,7 @@ docker compose stop api
 2. Restaure dump:
 
 ```bash
-cat backup_blog_vca_YYYY-MM-DD_HH-MM-SS.sql | docker exec -i blog_vca_mysql sh -c 'mysql -uroot -proot'
+cat backup_blog_vca_YYYY-MM-DD_HH-MM-SS.sql | docker exec -i blog_vca_mysql sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot'
 ```
 
 3. Suba novamente a API:

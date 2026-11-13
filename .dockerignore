@@ -20,3 +20,6 @@ Thumbs.db
 
 # Prisma (client será gerado no container)
 node_modules/.prisma
+
+# User uploads stay on the host volume
+files/

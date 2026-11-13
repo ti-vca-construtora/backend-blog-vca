@@ -11,21 +11,47 @@ import {
   Post,
   Query,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
+import { extname } from 'path';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { AuthTokenGuard } from '../auth/guard/auth-token-guard';
+import { AdminRoleGuard } from '../auth/guard/admin-role.guard';
 import { GruposService } from './grupos.service';
 import { CreateGrupoDto } from './dto/create-grupo.dto';
 import { UpdateGrupoDto } from './dto/update-grupo.dto';
 import { AdicionarIntegranteGrupoDto } from './dto/adicionar-usuario-grupo.dto';
 import { UpdateIntegranteGrupoDto } from './dto/update-integrante-grupo.dto';
 
-const ALLOWED_SHEET_MIMETYPES = [
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  'application/vnd.ms-excel',
-  'text/csv',
-];
+const MIME_TYPES_BY_EXTENSION: Record<string, readonly string[]> = {
+  '.xlsx': ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
+  '.xls': ['application/vnd.ms-excel'],
+  '.csv': ['text/csv', 'application/vnd.ms-excel'],
+};
+
+function hasExpectedSheetContent(file: Express.Multer.File): boolean {
+  if (!file.buffer?.length) return false;
+
+  const extension = extname(file.originalname).toLowerCase();
+  if (extension === '.xlsx') {
+    return file.buffer.subarray(0, 2).equals(Buffer.from([0x50, 0x4b]));
+  }
+  if (extension === '.xls') {
+    return file.buffer
+      .subarray(0, 8)
+      .equals(Buffer.from([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]));
+  }
+  if (extension === '.csv') {
+    const isUtf16 =
+      file.buffer.subarray(0, 2).equals(Buffer.from([0xff, 0xfe])) ||
+      file.buffer.subarray(0, 2).equals(Buffer.from([0xfe, 0xff]));
+    return isUtf16 || !file.buffer.includes(0);
+  }
+  return false;
+}
 
 @Controller('grupos')
 export class GruposController {
@@ -87,13 +113,19 @@ export class GruposController {
   }
 
   @Post(':id/importar-integrantes')
+  @UseGuards(AuthTokenGuard, AdminRoleGuard)
+  @ApiBearerAuth('access-token')
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),
       fileFilter: (_req, file, callback) => {
-        if (!ALLOWED_SHEET_MIMETYPES.includes(file.mimetype)) {
+        const extension = extname(file.originalname).toLowerCase();
+        const allowedMimeTypes = MIME_TYPES_BY_EXTENSION[extension];
+        if (!allowedMimeTypes?.includes(file.mimetype)) {
           return callback(
-            new BadRequestException('Apenas arquivos .xlsx, .xls ou .csv são permitidos.'),
+            new BadRequestException(
+              'Apenas arquivos .xlsx, .xls ou .csv são permitidos.',
+            ),
             false,
           );
         }
@@ -108,6 +140,11 @@ export class GruposController {
   ) {
     if (!file) {
       throw new BadRequestException('Arquivo não enviado.');
+    }
+    if (!hasExpectedSheetContent(file)) {
+      throw new BadRequestException(
+        'O conteúdo do arquivo não corresponde ao formato informado.',
+      );
     }
     return this.gruposService.importarIntegrantes(grupoId, file.buffer);
   }
